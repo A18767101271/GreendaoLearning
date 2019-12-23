@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<greendao.wislie.com.greendaolearning.slide.SlideLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:id="@+id/slide_layout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+    <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:background="?android:attr/selectableItemBackground"
+            android:orientation="vertical">
+
+        <TextView
+                android:layout_marginTop="@dimen/dp_10"
+                android:id="@+id/textViewNoteText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="14sp"
+                tools:text="Note Text"
+                android:layout_marginLeft="16dp"/>
+
+        <TextView
+                android:id="@+id/textViewNoteComment"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="16dp"
+                android:textSize="12sp"
+                tools:text="Note Comment"/>
+
+    </LinearLayout>
+
+    <LinearLayout android:layout_width="120dp" android:layout_height="60dp"
+                  android:orientation="horizontal"
+                  android:id="@+id/ll_slide">
+        <TextView
+                android:text="删除"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="match_parent"
+                android:id="@+id/tv_note_delete"
+                android:gravity="center"
+                android:textSize="20sp"
+                android:background="@color/colorAccent"
+        />
+        <TextView
+                android:text="详情"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="match_parent"
+                android:id="@+id/tv_note_detail"
+                android:gravity="center"
+                android:textSize="20sp"
+        />
+
+    </LinearLayout>
+</greendao.wislie.com.greendaolearning.slide.SlideLayout>

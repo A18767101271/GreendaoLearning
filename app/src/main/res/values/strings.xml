@@ -1,0 +1,6 @@
+<resources>
+    <string name="app_name">GreenDaoLearning</string>
+
+    <string name="list_title">GreenDao列表</string>
+    <string name="basic_knowledge_title">GreenDao基本操作</string>
+</resources>
