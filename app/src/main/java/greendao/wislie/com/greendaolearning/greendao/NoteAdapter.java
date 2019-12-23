@@ -35,7 +35,7 @@ public class NoteAdapter extends BaseQuickAdapter<Note, BaseViewHolder> {
         helper.addOnClickListener(R.id.tv_note_detail); //监听点击"详情"
         SlideLayout slideLayout = helper.getView(R.id.slide_layout);
 
-        slideLayout.setOnStateChangeListener(new SlideLayout.OnStateChangeListener() {
+        slideLayout.setSlideChangeListener(new SlideLayout.SlideChangeListener() {
             @Override
             public boolean shouldExpandLayout(View child) {
                 //判断哪个view处于点击状态

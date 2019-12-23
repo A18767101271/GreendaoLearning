@@ -156,14 +156,14 @@ public class SlideLayout extends ViewGroup {
                 if (!SlideManager.INSTANCE.isClosedAll()) {
                     View child = getClickView(ev);
                     //侧滑打开的情况
-                    if (mOnStateChangeListener == null || !mOnStateChangeListener.shouldExpandLayout(child)) {
+                    if (mSlideChangeListener == null || !mSlideChangeListener.shouldExpandLayout(child)) {
                         mSlideRight = true; //向右
                         //关闭侧滑
                         SlideManager.INSTANCE.closeAll();
                         SlideManager.INSTANCE.removeAll();
 
                         //判断是否应该把事件传递给子View
-                        if (mOnStateChangeListener != null && mOnStateChangeListener.shouldDispatchEventToChild(child)) {
+                        if (mSlideChangeListener != null && mSlideChangeListener.shouldDispatchEventToChild(child)) {
                             return super.dispatchTouchEvent(ev);
                         }
                         Log.i(TAG, "dispatchTouchEvent..");
@@ -171,7 +171,6 @@ public class SlideLayout extends ViewGroup {
                         //继续往下执行
                     }
                     Log.i(TAG, "点击详情..");
-
                 } else {
                     Log.i(TAG, "侧滑处于关闭..");
                     return true;
@@ -357,16 +356,16 @@ public class SlideLayout extends ViewGroup {
         }
     }
 
-    private OnStateChangeListener mOnStateChangeListener;
+    private SlideChangeListener mSlideChangeListener;
 
-    public void setOnStateChangeListener(OnStateChangeListener onStateChangeListener) {
-        this.mOnStateChangeListener = onStateChangeListener;
+    public void setSlideChangeListener(SlideChangeListener slideChangeListener) {
+        this.mSlideChangeListener = slideChangeListener;
     }
 
     /**
      * 状态改变监听器
      */
-    public interface OnStateChangeListener {
+    public interface SlideChangeListener {
         /**
          * 是否打开侧滑布局
          *
@@ -378,8 +377,8 @@ public class SlideLayout extends ViewGroup {
         /**
          * 是否应该把事件传递给子View
          *
-         * @param child
-         * @return
+         * @param child slideLayout中的子布局
+         * @return true表示会将事件传递到子View,false表示不会将事件传递到子View
          */
         boolean shouldDispatchEventToChild(View child);
     }
