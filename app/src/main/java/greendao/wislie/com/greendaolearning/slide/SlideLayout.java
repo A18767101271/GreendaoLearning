@@ -6,6 +6,7 @@ import android.util.AttributeSet;
 import android.util.Log;
 import android.view.*;
 import android.widget.Scroller;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,7 +16,8 @@ import java.util.List;
  * author : wislie
  * e-mail : 254457234@qq.com
  * date   : 2019/11/13 11:05 AM
- * desc   : 侧滑SlideLayout 参考 https://github.com/Dsiner/SlideLayout/blob/master/lib/src/main/java/com/d/lib/slidelayout/SlideLayout.java
+ * desc   : 侧滑SlideLayout
+ * 参考 https://github.com/Dsiner/SlideLayout/blob/master/lib/src/main/java/com/d/lib/slidelayout/SlideLayout.java
  * version: 1.0
  */
 public class SlideLayout extends ViewGroup {
@@ -48,15 +50,15 @@ public class SlideLayout extends ViewGroup {
     /**
      * 可以滑动的最大距离
      **/
-    private int mScrollMaxWidth;
+    private int mCouldScrollMaxWidth;
     /**
      * true表示向右滑动
      **/
     private boolean mSlideRight = false;
     /**
-     * 分别表示可滑动视图左侧子视图的宽度和右侧子视图的宽度
-     **/
-    private int leftChildWidth, rightChildWidth;
+     * 子视图一半的宽度
+     */
+    private int mHalfBlockWidth;
     /**
      * 速度追踪器
      **/
@@ -70,13 +72,9 @@ public class SlideLayout extends ViewGroup {
      **/
     private Scroller mScroller;
     /**
-     * 滑动时长
-     */
-    private long mScrollDuration;
-    /**
      * 可滑动子视图集合
      **/
-    private List<View> mChildViews = new ArrayList<>();
+    private List<View> mSlideViews = new ArrayList<>();
 
     public SlideLayout(Context context) {
         this(context, null);
@@ -100,33 +98,42 @@ public class SlideLayout extends ViewGroup {
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
         ///////////// 设置长宽 /////////////
         int measuredWidth = 0, measuredHeight = 0;
+        mCouldScrollMaxWidth = 0;
         for (int i = 0; i < getChildCount(); i++) {
             View child = getChildAt(i);
             measureChild(child, widthMeasureSpec, heightMeasureSpec);
-            measuredWidth += child.getMeasuredWidth();
+
+            if (i == getChildCount() - 1) {
+                ViewGroup slideLayout = getSlideLayout();
+                if (slideLayout == null) break;
+                mSlideViews.clear();
+                for (int j = 0; j < slideLayout.getChildCount(); j++) {
+                    View slideChild = slideLayout.getChildAt(j);
+                    if (slideChild.getVisibility() != View.VISIBLE) {
+                        continue;
+                    }
+                    mSlideViews.add(slideChild);
+                    int slideWidth = slideChild.getMeasuredWidth();
+                    mHalfBlockWidth = slideWidth / 2;
+                    mCouldScrollMaxWidth += slideWidth;
+                    measuredWidth += slideWidth;
+                }
+            } else {
+                measuredWidth += child.getMeasuredWidth();
+
+            }
             measuredHeight = child.getMeasuredHeight();
         }
+        Log.i(TAG, "onMeasure: measuredWidth:" + measuredWidth + " mCouldScrollMaxWidth:" + mCouldScrollMaxWidth);
         setMeasuredDimension(measuredWidth, measuredHeight);
+    }
 
-        View lastView = getChildAt(getChildCount() - 1);
-        if (lastView != null) {
-            if (lastView instanceof ViewGroup) {
-                ViewGroup parent = (ViewGroup) lastView;
-
-                mChildViews.clear();
-                //添加子View
-                for (int i = 0; i < parent.getChildCount(); i++) {
-                    View child = parent.getChildAt(i);
-                    if (i == 0) {
-                        leftChildWidth = child.getMeasuredWidth();
-                    } else if (i == parent.getChildCount() - 1) {
-                        rightChildWidth = child.getMeasuredWidth();
-                    }
-                    mChildViews.add(child);
-                }
-            }
-            mScrollMaxWidth = lastView.getMeasuredWidth();
+    private ViewGroup getSlideLayout() {
+        if (getChildCount() != 0) {
+            View child = getChildAt(getChildCount() - 1);
+            if (child instanceof ViewGroup) return (ViewGroup) child;
         }
+        return null;
     }
 
     @Override
@@ -136,6 +143,9 @@ public class SlideLayout extends ViewGroup {
             //子视图排列在同一行
             for (int i = 0; i < getChildCount(); i++) {
                 View child = getChildAt(i);
+                if (child.getVisibility() != VISIBLE) {
+                    continue;
+                }
                 int left = startLeft;
                 int right = left + child.getMeasuredWidth();
                 int bottom = child.getMeasuredHeight();
@@ -153,11 +163,12 @@ public class SlideLayout extends ViewGroup {
                 obtainVelocityTracker(ev);
                 mLastX = ev.getX();
                 mLastY = ev.getY();
-                if (!SlideManager.INSTANCE.isClosedAll()) {
+                if (!SlideManager.INSTANCE.isClosedAll() || getScrollX() != 0) {
                     View child = getClickView(ev);
                     //侧滑打开的情况
                     if (mSlideChangeListener == null || !mSlideChangeListener.shouldExpandLayout(child)) {
                         mSlideRight = true; //向右
+                        Toast.makeText(getContext(),"向右..",Toast.LENGTH_SHORT).show();
                         //关闭侧滑
                         SlideManager.INSTANCE.closeAll();
                         SlideManager.INSTANCE.removeAll();
@@ -167,6 +178,7 @@ public class SlideLayout extends ViewGroup {
                             return super.dispatchTouchEvent(ev);
                         }
                         Log.i(TAG, "dispatchTouchEvent..");
+
                         return true;
                         //继续往下执行
                     }
@@ -211,6 +223,7 @@ public class SlideLayout extends ViewGroup {
                 mLastX = x;
                 //x的值变大,说明向右滑动
                 mSlideRight = x > mLastX;
+                Toast.makeText(getContext(),"move..",Toast.LENGTH_SHORT).show();
                 return true;
             case MotionEvent.ACTION_UP:
                 VelocityTracker velocityTracker = mVelocityTracker;
@@ -241,8 +254,8 @@ public class SlideLayout extends ViewGroup {
      * @return
      */
     private View getClickView(MotionEvent ev) {
-        for (int i = 0; i < mChildViews.size(); i++) {
-            View child = mChildViews.get(i);
+        for (int i = 0; i < mSlideViews.size(); i++) {
+            View child = mSlideViews.get(i);
             RectF rect = DensityUtil.calcViewScreenLocation(child);
             boolean isInViewRect = rect.contains(ev.getRawX(), ev.getRawY());
             if (isInViewRect) {
@@ -273,8 +286,8 @@ public class SlideLayout extends ViewGroup {
 
     @Override
     public void scrollTo(int x, int y) {
-        if (x >= mScrollMaxWidth) {
-            x = mScrollMaxWidth;
+        if (x >= mCouldScrollMaxWidth) {
+            x = mCouldScrollMaxWidth;
         } else if (x < 0) {
             x = 0;
         }
@@ -289,8 +302,8 @@ public class SlideLayout extends ViewGroup {
     private void scrollToEdge() {
         int dx;
         if (mSlideRight) { //向右滑动
-            dx = mScrollMaxWidth - getScrollX();
-            if (dx < rightChildWidth / 2) {
+            dx = mCouldScrollMaxWidth - getScrollX();
+            if (dx < mHalfBlockWidth / 2) {
                 if (dx < 1) {
                     scrollBy(dx, 0);
                     return;
@@ -300,14 +313,14 @@ public class SlideLayout extends ViewGroup {
                 isExpanded = false;
             }
         } else { //向左滑动
-            if (getScrollX() < leftChildWidth / 2) {
+            if (getScrollX() < mHalfBlockWidth / 2) {
                 dx = -getScrollX();
                 if (getScrollX() < 1) {
                     scrollBy(dx, 0);
                     return;
                 }
             } else {
-                dx = mScrollMaxWidth - getScrollX();
+                dx = mCouldScrollMaxWidth - getScrollX();
                 isExpanded = true;
             }
         }
@@ -323,7 +336,7 @@ public class SlideLayout extends ViewGroup {
     public void fling(int velocityX) {
         if (getChildCount() > 0) {
             mScroller.fling(getScrollX(), 0, velocityX, 0, 0,
-                    mScrollMaxWidth, 0, 0);
+                    mCouldScrollMaxWidth, 0, 0);
             awakenScrollBars(mScroller.getDuration());
             invalidate();
         }
@@ -378,7 +391,7 @@ public class SlideLayout extends ViewGroup {
          * 是否应该把事件传递给子View
          *
          * @param child slideLayout中的子布局
-         * @return true表示会将事件传递到子View,false表示不会将事件传递到子View
+         * @return true表示会将事件传递到子View, false表示不会将事件传递到子View
          */
         boolean shouldDispatchEventToChild(View child);
     }

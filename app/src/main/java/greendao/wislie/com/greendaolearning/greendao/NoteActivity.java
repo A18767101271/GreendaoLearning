@@ -77,7 +77,7 @@ public class NoteActivity extends AppCompatActivity {
 
     }
 
-    private void initView(){
+    private void initView() {
         toolbar.setTitle(getString(R.string.list_title));
         setSupportActionBar(toolbar);
         addBtn.setEnabled(false);
@@ -86,6 +86,7 @@ public class NoteActivity extends AppCompatActivity {
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
 
             }
+
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
                 if (!TextUtils.isEmpty(s)) {
@@ -94,6 +95,7 @@ public class NoteActivity extends AppCompatActivity {
                     addBtn.setEnabled(false);
                 }
             }
+
             @Override
             public void afterTextChanged(Editable s) {
 
@@ -115,6 +117,12 @@ public class NoteActivity extends AppCompatActivity {
                     case R.id.tv_note_detail:
                         startActivity(new Intent(NoteActivity.this, NoteLearningActivity.class));
                         break;
+                    case R.id.tv_note_top: //置顶
+                        mAdapter.smoothToTop(position);
+                        break;
+//                    case R.id.tv_cancel_note_top: //取消置顶
+//                        mAdapter.cancelToTop();
+//                        break;
                 }
             }
         });
@@ -122,13 +130,14 @@ public class NoteActivity extends AppCompatActivity {
 
 
     @OnClick({R.id.buttonAdd})
-    public void onClick(View view){
-        switch (view.getId()){
+    public void onClick(View view) {
+        switch (view.getId()) {
             case R.id.buttonAdd:
                 addNote();
                 break;
         }
     }
+
     //查询note列表
     private void queryNoteList() {
         List<Note> noteList = noteQuery.list();
@@ -157,4 +166,5 @@ public class NoteActivity extends AppCompatActivity {
         noteDao.delete(note);
         mAdapter.delete(position);
     }
+
 }

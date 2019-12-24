@@ -23,19 +23,30 @@ public class Note {
     @Id(autoincrement = true)
     private Long id;
 
+    //输入内容
     @NotNull
-    private String text; //输入内容
+    private String text;
+    //什么时候添加
+    private Date date;
+    //添加时间
+    private String comment;
+    //是否置顶
+    private Boolean top = Boolean.FALSE;
+    //上一次的下标
+    private Integer lastIndex = -1;
+    //下标
+    private Integer curIndex = -1;
 
-    private Date date;//什么时候添加
-
-    private String comment; //添加时间
-
-@Generated(hash = 2054018170)
-public Note(Long id, @NotNull String text, Date date, String comment) {
+@Generated(hash = 1932874470)
+public Note(Long id, @NotNull String text, Date date, String comment,
+        Boolean top, Integer lastIndex, Integer curIndex) {
     this.id = id;
     this.text = text;
     this.date = date;
     this.comment = comment;
+    this.top = top;
+    this.lastIndex = lastIndex;
+    this.curIndex = curIndex;
 }
 
 @Generated(hash = 1272611929)
@@ -72,5 +83,29 @@ public String getComment() {
 
 public void setComment(String comment) {
     this.comment = comment;
+}
+
+public Boolean getTop() {
+    return this.top;
+}
+
+public void setTop(Boolean top) {
+    this.top = top;
+}
+
+public Integer getLastIndex() {
+    return this.lastIndex;
+}
+
+public void setLastIndex(Integer lastIndex) {
+    this.lastIndex = lastIndex;
+}
+
+public Integer getCurIndex() {
+    return this.curIndex;
+}
+
+public void setCurIndex(Integer curIndex) {
+    this.curIndex = curIndex;
 }
 }

@@ -31,28 +31,47 @@
 
     </LinearLayout>
 
-    <LinearLayout android:layout_width="120dp" android:layout_height="60dp"
+    <LinearLayout android:layout_width="wrap_content" android:layout_height="60dp"
                   android:orientation="horizontal"
                   android:id="@+id/ll_slide">
         <TextView
                 android:text="删除"
-                android:layout_width="0dp"
-                android:layout_weight="1"
+                android:layout_width="70dp"
                 android:layout_height="match_parent"
                 android:id="@+id/tv_note_delete"
                 android:gravity="center"
-                android:textSize="20sp"
+                android:textSize="16sp"
                 android:background="@color/colorAccent"
         />
         <TextView
                 android:text="详情"
-                android:layout_width="0dp"
-                android:layout_weight="1"
+                android:layout_width="70dp"
                 android:layout_height="match_parent"
                 android:id="@+id/tv_note_detail"
                 android:gravity="center"
-                android:textSize="20sp"
+                android:textSize="16sp"
         />
+
+        <TextView
+                android:text="置顶"
+                android:layout_width="70dp"
+                android:layout_height="match_parent"
+                android:id="@+id/tv_note_top"
+                android:gravity="center"
+                android:textSize="16sp"
+                android:visibility="visible"
+                android:background="@color/colorAccent"
+        />
+       <!-- <TextView
+                android:text="取消置顶"
+                android:layout_width="70dp"
+                android:layout_height="match_parent"
+                android:id="@+id/tv_cancel_note_top"
+                android:gravity="center"
+                android:textSize="16sp"
+                android:background="@color/colorAccent"
+                android:visibility="visible"
+        />-->
 
     </LinearLayout>
 </greendao.wislie.com.greendaolearning.slide.SlideLayout>

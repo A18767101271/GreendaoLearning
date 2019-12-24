@@ -28,6 +28,9 @@ public class NoteDao extends AbstractDao<Note, Long> {
         public final static Property Text = new Property(1, String.class, "text", false, "TEXT");
         public final static Property Date = new Property(2, java.util.Date.class, "date", false, "DATE");
         public final static Property Comment = new Property(3, String.class, "comment", false, "COMMENT");
+        public final static Property Top = new Property(4, Boolean.class, "top", false, "TOP");
+        public final static Property LastIndex = new Property(5, Integer.class, "lastIndex", false, "LAST_INDEX");
+        public final static Property CurIndex = new Property(6, Integer.class, "curIndex", false, "CUR_INDEX");
     }
 
 
@@ -46,7 +49,10 @@ public class NoteDao extends AbstractDao<Note, Long> {
                 "\"_id\" INTEGER PRIMARY KEY AUTOINCREMENT ," + // 0: id
                 "\"TEXT\" TEXT NOT NULL ," + // 1: text
                 "\"DATE\" INTEGER," + // 2: date
-                "\"COMMENT\" TEXT);"); // 3: comment
+                "\"COMMENT\" TEXT," + // 3: comment
+                "\"TOP\" INTEGER," + // 4: top
+                "\"LAST_INDEX\" INTEGER," + // 5: lastIndex
+                "\"CUR_INDEX\" INTEGER);"); // 6: curIndex
         // Add Indexes
         db.execSQL("CREATE UNIQUE INDEX " + constraint + "IDX_NOTE_TEXT_DATE_DESC ON \"NOTE\"" +
                 " (\"TEXT\" ASC,\"DATE\" DESC);");
@@ -77,6 +83,21 @@ public class NoteDao extends AbstractDao<Note, Long> {
         if (comment != null) {
             stmt.bindString(4, comment);
         }
+ 
+        Boolean top = entity.getTop();
+        if (top != null) {
+            stmt.bindLong(5, top ? 1L: 0L);
+        }
+ 
+        Integer lastIndex = entity.getLastIndex();
+        if (lastIndex != null) {
+            stmt.bindLong(6, lastIndex);
+        }
+ 
+        Integer curIndex = entity.getCurIndex();
+        if (curIndex != null) {
+            stmt.bindLong(7, curIndex);
+        }
     }
 
     @Override
@@ -98,6 +119,21 @@ public class NoteDao extends AbstractDao<Note, Long> {
         if (comment != null) {
             stmt.bindString(4, comment);
         }
+ 
+        Boolean top = entity.getTop();
+        if (top != null) {
+            stmt.bindLong(5, top ? 1L: 0L);
+        }
+ 
+        Integer lastIndex = entity.getLastIndex();
+        if (lastIndex != null) {
+            stmt.bindLong(6, lastIndex);
+        }
+ 
+        Integer curIndex = entity.getCurIndex();
+        if (curIndex != null) {
+            stmt.bindLong(7, curIndex);
+        }
     }
 
     @Override
@@ -111,7 +147,10 @@ public class NoteDao extends AbstractDao<Note, Long> {
             cursor.isNull(offset + 0) ? null : cursor.getLong(offset + 0), // id
             cursor.getString(offset + 1), // text
             cursor.isNull(offset + 2) ? null : new java.util.Date(cursor.getLong(offset + 2)), // date
-            cursor.isNull(offset + 3) ? null : cursor.getString(offset + 3) // comment
+            cursor.isNull(offset + 3) ? null : cursor.getString(offset + 3), // comment
+            cursor.isNull(offset + 4) ? null : cursor.getShort(offset + 4) != 0, // top
+            cursor.isNull(offset + 5) ? null : cursor.getInt(offset + 5), // lastIndex
+            cursor.isNull(offset + 6) ? null : cursor.getInt(offset + 6) // curIndex
         );
         return entity;
     }
@@ -122,6 +161,9 @@ public class NoteDao extends AbstractDao<Note, Long> {
         entity.setText(cursor.getString(offset + 1));
         entity.setDate(cursor.isNull(offset + 2) ? null : new java.util.Date(cursor.getLong(offset + 2)));
         entity.setComment(cursor.isNull(offset + 3) ? null : cursor.getString(offset + 3));
+        entity.setTop(cursor.isNull(offset + 4) ? null : cursor.getShort(offset + 4) != 0);
+        entity.setLastIndex(cursor.isNull(offset + 5) ? null : cursor.getInt(offset + 5));
+        entity.setCurIndex(cursor.isNull(offset + 6) ? null : cursor.getInt(offset + 6));
      }
     
     @Override
