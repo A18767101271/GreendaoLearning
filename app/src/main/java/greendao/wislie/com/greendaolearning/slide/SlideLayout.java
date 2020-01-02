@@ -75,6 +75,8 @@ public class SlideLayout extends ViewGroup {
      **/
     private List<View> mSlideViews = new ArrayList<>();
 
+    private boolean mIsMoveValid;
+
     public SlideLayout(Context context) {
         this(context, null);
     }
@@ -160,12 +162,14 @@ public class SlideLayout extends ViewGroup {
 
         switch (ev.getActionMasked()) {
             case MotionEvent.ACTION_DOWN:
-                if(!mScroller.isFinished()){
+                if (!mScroller.isFinished()) {
                     mScroller.abortAnimation();
                 }
 
+
                 mLastX = ev.getX();
                 mLastY = ev.getY();
+
                 Log.i(TAG, "滚动按下..");
                 if (!SlideManager.INSTANCE.isClosedAll()) {
                     View child = getClickView(ev);
@@ -188,41 +192,12 @@ public class SlideLayout extends ViewGroup {
                     Log.i(TAG, "点击详情..");
                 } else {
                     Log.i(TAG, "侧滑处于关闭..");
+
+
                     return true;
                 }
                 break;
 
-                default:
-                  /*  Log.i(TAG, "dispatchTouchEvent other:"+SlideManager.INSTANCE.size());
-                    if(SlideManager.INSTANCE.size() >0){
-                        //关闭其他的侧滑
-                        SlideManager.INSTANCE.closeAllExceptThis(this);
-                        SlideManager.INSTANCE.removeAllExceptThis(this);
-                        return true;
-                    }*/
-                    break;
-           /* default:
-                if (!SlideManager.INSTANCE.isClosedAll()) {
-                    View child = getClickView(ev);
-                    //侧滑打开的情况
-                    if (mSlideChangeListener == null || !mSlideChangeListener.shouldExpandLayout(child)) {
-                        //判断是否应该把事件传递给子View
-                        *//*if (mSlideChangeListener != null && mSlideChangeListener.shouldDispatchEventToChild(child)) {
-                            return super.dispatchTouchEvent(ev);
-                        }*//*
-                        //表示向右滑动
-//                        mSlideRight = true;
-                        Log.i(TAG, "滚动关闭..");
-
-                        //关闭其他的侧滑
-                        SlideManager.INSTANCE.closeAllExceptThis(this);
-                        SlideManager.INSTANCE.removeAllExceptThis(this);
-//                        return true;
-                        //继续往下执行
-                    }
-                    Log.i(TAG, "点击详情..");
-                }
-                break;*/
         }
 
         return super.dispatchTouchEvent(ev);
@@ -248,38 +223,40 @@ public class SlideLayout extends ViewGroup {
         obtainVelocityTracker(event);
         switch (event.getActionMasked()) {
             case MotionEvent.ACTION_MOVE:
-//                if( SlideManager.IS_SLIDING || SlideManager.INSTANCE.size()>0) return true;
-//                Log.i(TAG, "onTouchEvent ACTION_MOVE.." + SlideManager.IS_SLIDING+" size:"+SlideManager.INSTANCE.size());
                 float x = event.getX();
                 float y = event.getY();
-                if (Math.abs(x - mLastX) > mTouchSlop && Math.abs(x - mLastX) > Math.abs(y - mLastY)) {
+                if (!mIsMoveValid && Math.abs(x - mLastX) > mTouchSlop && Math.abs(x - mLastX) > Math.abs(y - mLastY)) {
                     //防止事件被父布局拦截
                     requestDisallowInterceptTouchEvent(true);
+                    mIsMoveValid = true;
                 }
-                //x的值变大,说明向右滑动
-                int deltaX = (int) -(x - mLastX);
-                scrollBy(deltaX, 0);
-                mSlideRight = deltaX <= 0;
-                mLastX = x;
-                return true;
+                if(mIsMoveValid){
+                    //x的值变大,说明向右滑动
+                    int deltaX = (int) -(x - mLastX);
+                    scrollBy(deltaX, 0);
+                    mSlideRight = deltaX <= 0;
+                    mLastX = x;
+                    return true;
+                }
             case MotionEvent.ACTION_UP:
             case MotionEvent.ACTION_CANCEL:
-//                if( SlideManager.IS_SLIDING || SlideManager.INSTANCE.size()>0 ) return true;
-//                Log.i(TAG, "onTouchEvent ACTION_UP/ACTION_CANCEL.." + SlideManager.IS_SLIDING+" size:"+SlideManager.INSTANCE.size());
-                VelocityTracker velocityTracker = mVelocityTracker;
-                velocityTracker.computeCurrentVelocity(1000, mMaximumVelocity);
+                if(mIsMoveValid){
+                    VelocityTracker velocityTracker = mVelocityTracker;
+                    velocityTracker.computeCurrentVelocity(1000, mMaximumVelocity);
 
-                int pointerIndex = event.getActionIndex();
-                int initialVelocity = (int) velocityTracker.getXVelocity(event.getPointerId(pointerIndex));
-                if ((Math.abs(initialVelocity) > mMinimumVelocity)) {
-//                    Log.i(TAG, "onTouchEvent: fling");
-                    fling(-initialVelocity);
-                } else {
-                    //滑动到最左边或者最右边
-//                    Log.i(TAG, "onTouchEvent: edge");
-                    scrollToEdge();
+                    int pointerIndex = event.getActionIndex();
+                    int initialVelocity = (int) velocityTracker.getXVelocity(event.getPointerId(pointerIndex));
+                    if ((Math.abs(initialVelocity) > mMinimumVelocity)) {
+                        fling(-initialVelocity);
+                    } else {
+                        //滑动到最左边或者最右边
+                        scrollToEdge();
+                    }
+                    releaseVelocityTracker();
+                    mIsMoveValid = false;
+                    return true;
                 }
-                releaseVelocityTracker();
+
                 break;
         }
         return super.onTouchEvent(event);
