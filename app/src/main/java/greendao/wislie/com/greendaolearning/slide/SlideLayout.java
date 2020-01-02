@@ -6,7 +6,6 @@ import android.util.AttributeSet;
 import android.util.Log;
 import android.view.*;
 import android.widget.Scroller;
-import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -155,30 +154,34 @@ public class SlideLayout extends ViewGroup {
         }
     }
 
+
     @Override
     public boolean dispatchTouchEvent(MotionEvent ev) {
 
-        switch (ev.getAction()) {
+        switch (ev.getActionMasked()) {
             case MotionEvent.ACTION_DOWN:
-                obtainVelocityTracker(ev);
+                if(!mScroller.isFinished()){
+                    mScroller.abortAnimation();
+                }
+
                 mLastX = ev.getX();
                 mLastY = ev.getY();
-                if (!SlideManager.INSTANCE.isClosedAll() || getScrollX() != 0) {
+                Log.i(TAG, "滚动按下..");
+                if (!SlideManager.INSTANCE.isClosedAll()) {
                     View child = getClickView(ev);
                     //侧滑打开的情况
                     if (mSlideChangeListener == null || !mSlideChangeListener.shouldExpandLayout(child)) {
-                        mSlideRight = true; //向右
-                        Toast.makeText(getContext(),"向右..",Toast.LENGTH_SHORT).show();
-                        //关闭侧滑
-                        SlideManager.INSTANCE.closeAll();
-                        SlideManager.INSTANCE.removeAll();
-
                         //判断是否应该把事件传递给子View
                         if (mSlideChangeListener != null && mSlideChangeListener.shouldDispatchEventToChild(child)) {
                             return super.dispatchTouchEvent(ev);
                         }
-                        Log.i(TAG, "dispatchTouchEvent..");
+                        //表示向右滑动
+                        mSlideRight = true;
+                        Log.i(TAG, "滚动关闭..");
 
+                        //关闭其他的侧滑
+                        SlideManager.INSTANCE.closeAllExceptThis(this);
+                        SlideManager.INSTANCE.removeAllExceptThis(this);
                         return true;
                         //继续往下执行
                     }
@@ -187,7 +190,39 @@ public class SlideLayout extends ViewGroup {
                     Log.i(TAG, "侧滑处于关闭..");
                     return true;
                 }
+                break;
 
+                default:
+                  /*  Log.i(TAG, "dispatchTouchEvent other:"+SlideManager.INSTANCE.size());
+                    if(SlideManager.INSTANCE.size() >0){
+                        //关闭其他的侧滑
+                        SlideManager.INSTANCE.closeAllExceptThis(this);
+                        SlideManager.INSTANCE.removeAllExceptThis(this);
+                        return true;
+                    }*/
+                    break;
+           /* default:
+                if (!SlideManager.INSTANCE.isClosedAll()) {
+                    View child = getClickView(ev);
+                    //侧滑打开的情况
+                    if (mSlideChangeListener == null || !mSlideChangeListener.shouldExpandLayout(child)) {
+                        //判断是否应该把事件传递给子View
+                        *//*if (mSlideChangeListener != null && mSlideChangeListener.shouldDispatchEventToChild(child)) {
+                            return super.dispatchTouchEvent(ev);
+                        }*//*
+                        //表示向右滑动
+//                        mSlideRight = true;
+                        Log.i(TAG, "滚动关闭..");
+
+                        //关闭其他的侧滑
+                        SlideManager.INSTANCE.closeAllExceptThis(this);
+                        SlideManager.INSTANCE.removeAllExceptThis(this);
+//                        return true;
+                        //继续往下执行
+                    }
+                    Log.i(TAG, "点击详情..");
+                }
+                break;*/
         }
 
         return super.dispatchTouchEvent(ev);
@@ -195,7 +230,7 @@ public class SlideLayout extends ViewGroup {
 
     @Override
     public boolean onInterceptTouchEvent(MotionEvent ev) {
-        switch (ev.getAction()) {
+        switch (ev.getActionMasked()) {
             case MotionEvent.ACTION_MOVE: //事件拦截
                 float x = ev.getX();
                 float y = ev.getY();
@@ -210,36 +245,39 @@ public class SlideLayout extends ViewGroup {
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-        switch (event.getAction()) {
+        obtainVelocityTracker(event);
+        switch (event.getActionMasked()) {
             case MotionEvent.ACTION_MOVE:
+//                if( SlideManager.IS_SLIDING || SlideManager.INSTANCE.size()>0) return true;
+//                Log.i(TAG, "onTouchEvent ACTION_MOVE.." + SlideManager.IS_SLIDING+" size:"+SlideManager.INSTANCE.size());
                 float x = event.getX();
                 float y = event.getY();
                 if (Math.abs(x - mLastX) > mTouchSlop && Math.abs(x - mLastX) > Math.abs(y - mLastY)) {
                     //防止事件被父布局拦截
                     requestDisallowInterceptTouchEvent(true);
                 }
+                //x的值变大,说明向右滑动
                 int deltaX = (int) -(x - mLastX);
                 scrollBy(deltaX, 0);
+                mSlideRight = deltaX <= 0;
                 mLastX = x;
-                //x的值变大,说明向右滑动
-                mSlideRight = x > mLastX;
-                Toast.makeText(getContext(),"move..",Toast.LENGTH_SHORT).show();
                 return true;
             case MotionEvent.ACTION_UP:
+            case MotionEvent.ACTION_CANCEL:
+//                if( SlideManager.IS_SLIDING || SlideManager.INSTANCE.size()>0 ) return true;
+//                Log.i(TAG, "onTouchEvent ACTION_UP/ACTION_CANCEL.." + SlideManager.IS_SLIDING+" size:"+SlideManager.INSTANCE.size());
                 VelocityTracker velocityTracker = mVelocityTracker;
                 velocityTracker.computeCurrentVelocity(1000, mMaximumVelocity);
-                int initialVelocity = (int) velocityTracker.getXVelocity();
+
+                int pointerIndex = event.getActionIndex();
+                int initialVelocity = (int) velocityTracker.getXVelocity(event.getPointerId(pointerIndex));
                 if ((Math.abs(initialVelocity) > mMinimumVelocity)) {
+//                    Log.i(TAG, "onTouchEvent: fling");
                     fling(-initialVelocity);
                 } else {
                     //滑动到最左边或者最右边
+//                    Log.i(TAG, "onTouchEvent: edge");
                     scrollToEdge();
-                }
-                releaseVelocityTracker();
-                break;
-            case MotionEvent.ACTION_CANCEL:
-                if (!mScroller.isFinished()) {
-                    mScroller.abortAnimation();
                 }
                 releaseVelocityTracker();
                 break;
@@ -259,7 +297,6 @@ public class SlideLayout extends ViewGroup {
             RectF rect = DensityUtil.calcViewScreenLocation(child);
             boolean isInViewRect = rect.contains(ev.getRawX(), ev.getRawY());
             if (isInViewRect) {
-                Log.i(TAG, "child position:");
                 return child;
             }
         }
@@ -272,15 +309,18 @@ public class SlideLayout extends ViewGroup {
         if (mScroller.computeScrollOffset()) {
             scrollTo(mScroller.getCurrX(), mScroller.getCurrY());
             if (!mScroller.computeScrollOffset()) { //滚动结束
-                Log.i(TAG, "滚动结束...");
-                if (isExpanded) {
-                    SlideManager.INSTANCE.add(this);
-                } else {
+                Log.i(TAG, "滚动结束... scrollX:" + getScrollX());
+//                SlideManager.IS_SLIDING = false;
+                if (getScrollX() == 0) {
                     SlideManager.INSTANCE.remove(this);
+                    isExpanded = false;
+                } else if (getScrollX() == mCouldScrollMaxWidth) {
+                    SlideManager.INSTANCE.add(this);
+                    isExpanded = true;
                 }
             }
             //继续调用computeScroll方法
-            postInvalidate();
+            invalidate();
         }
     }
 
@@ -302,16 +342,23 @@ public class SlideLayout extends ViewGroup {
     private void scrollToEdge() {
         int dx;
         if (mSlideRight) { //向右滑动
-            dx = mCouldScrollMaxWidth - getScrollX();
-            if (dx < mHalfBlockWidth / 2) {
-                if (dx < 1) {
-                    scrollBy(dx, 0);
-                    return;
-                }
-            } else {
+
+            if (isExpanded) { //展开的情况下, 需要向右侧滑
                 dx = -getScrollX();
-                isExpanded = false;
+            } else {
+
+                dx = mCouldScrollMaxWidth - getScrollX();
+
+                if (dx < mHalfBlockWidth / 2) {
+                    if (dx < 1) {
+                        scrollBy(dx, 0);
+                        return;
+                    }
+                } else {
+                    dx = -getScrollX();
+                }
             }
+
         } else { //向左滑动
             if (getScrollX() < mHalfBlockWidth / 2) {
                 dx = -getScrollX();
@@ -321,9 +368,9 @@ public class SlideLayout extends ViewGroup {
                 }
             } else {
                 dx = mCouldScrollMaxWidth - getScrollX();
-                isExpanded = true;
             }
         }
+//        SlideManager.IS_SLIDING = true;
         mScroller.startScroll(getScrollX(), 0, dx, 0, NORMAL_CLOSE_DURATION);
         invalidate();
     }
@@ -334,12 +381,13 @@ public class SlideLayout extends ViewGroup {
      * @param velocityX
      */
     public void fling(int velocityX) {
-        if (getChildCount() > 0) {
-            mScroller.fling(getScrollX(), 0, velocityX, 0, 0,
-                    mCouldScrollMaxWidth, 0, 0);
-            awakenScrollBars(mScroller.getDuration());
-            invalidate();
-        }
+//        if (getChildCount() > 0) {
+//            mScroller.fling(getScrollX(), 0, velocityX, 0, 0,
+//                    mCouldScrollMaxWidth, 0, 0);
+//            awakenScrollBars(mScroller.getDuration());
+        scrollToEdge();
+//            invalidate();
+//        }
     }
 
     private void obtainVelocityTracker(MotionEvent event) {
@@ -361,7 +409,7 @@ public class SlideLayout extends ViewGroup {
      */
     public void close(boolean isQuickClose) {
         if (isExpanded) {
-            isExpanded = false;
+//            isExpanded = false;
             int dx = -getScrollX();
             int duration = isQuickClose ? QUICK_CLOSE_DURATION : NORMAL_CLOSE_DURATION;
             mScroller.startScroll(getScrollX(), 0, dx, 0, duration);

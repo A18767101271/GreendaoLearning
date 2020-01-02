@@ -1,6 +1,7 @@
 package greendao.wislie.com.greendaolearning.slide;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -14,6 +15,8 @@ public class SlideManager {
 
     public static final SlideManager INSTANCE = new SlideManager();
     private List<SlideLayout> mSlideList;
+    //true表示在滑动,false表示没有在滑动
+//    public static boolean IS_SLIDING = false;
 
     public SlideManager() {
         mSlideList = new ArrayList<>();
@@ -32,8 +35,8 @@ public class SlideManager {
     }
 
     /**
-     *
      * 判断是否都关闭
+     *
      * @return
      */
     public boolean isClosedAll() {
@@ -89,19 +92,37 @@ public class SlideManager {
     }
 
     /**
-     * 正常关闭所有的
+     * 正常关闭所有的,除了当前的
      */
-    public void closeAll() {
-        for (int i = mSlideList.size() - 1; i >= 0; i--) {
-            SlideLayout sl = mSlideList.get(i);
-            sl.close(false);
+    public void closeAllExceptThis(SlideLayout slideLayout) {
+        Iterator<SlideLayout> iterator = mSlideList.iterator();
+        while (iterator.hasNext()) {
+            SlideLayout sl = iterator.next();
+            if (sl != slideLayout) {
+                sl.close(false);
+            }
+        }
+    }
+
+    /**
+     * 移除slideLayout
+     *
+     * @param slideLayout
+     */
+    public void removeAllExceptThis(SlideLayout slideLayout) {
+        Iterator<SlideLayout> iterator = mSlideList.iterator();
+        while (iterator.hasNext()) {
+            SlideLayout sl = iterator.next();
+            if (sl != slideLayout) {
+                mSlideList.remove(sl);
+            }
         }
     }
 
     /**
      * 快速关闭所有的
      */
-    public void quickCloseAll(){
+    public void quickCloseAll() {
         for (int i = mSlideList.size() - 1; i >= 0; i--) {
             SlideLayout sl = mSlideList.get(i);
             sl.close(true);
@@ -111,7 +132,11 @@ public class SlideManager {
     /**
      * 删除所有的
      */
-    public void removeAll(){
-        if(mSlideList.size() > 0) mSlideList.clear();
+    public void removeAll() {
+        if (mSlideList.size() > 0) mSlideList.clear();
+    }
+
+    public int size(){
+        return mSlideList.size();
     }
 }
