@@ -3,6 +3,8 @@ package greendao.wislie.com.greendaolearning.greendao;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.util.DiffUtil;
+import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.View;
 import com.chad.library.adapter.base.BaseQuickAdapter;
 import com.chad.library.adapter.base.BaseViewHolder;
@@ -21,9 +23,13 @@ import java.util.List;
  */
 public class NoteAdapter extends BaseQuickAdapter<Note, BaseViewHolder> {
 
-    public NoteAdapter(int layoutResId, @Nullable List<Note> data) {
+    private RecyclerView mRv;
+
+    public NoteAdapter(RecyclerView rv, int layoutResId, @Nullable List<Note> data) {
         super(layoutResId, data);
+        mRv = rv;
     }
+
 
     @Override
     protected void convert(@NonNull BaseViewHolder helper, Note note) {
@@ -46,7 +52,7 @@ public class NoteAdapter extends BaseQuickAdapter<Note, BaseViewHolder> {
             helper.setText(R.id.tv_note_top, "置顶");
         }
 
-        SlideLayout slideLayout = helper.getView(R.id.slide_layout);
+        final SlideLayout slideLayout = helper.getView(R.id.slide_layout);
 
         slideLayout.setSlideChangeListener(new SlideLayout.SlideChangeListener() {
             @Override
@@ -84,7 +90,6 @@ public class NoteAdapter extends BaseQuickAdapter<Note, BaseViewHolder> {
     public void setData(List<Note> newItemList) {
         // 获取DiffResult结果
         DiffUtil.DiffResult diffResult = DiffUtil.calculateDiff(new BaseDiffCallback<Note>(mData, newItemList) {
-
             @Override
             public boolean areItemsTheSame(Note lastItem, Note newItem) {
                 return lastItem.getId() == newItem.getId();
@@ -110,6 +115,11 @@ public class NoteAdapter extends BaseQuickAdapter<Note, BaseViewHolder> {
      */
     public void delete(int position) {
         if (position >= getItemCount()) return;
+
+        View slideLayout = getViewByPosition(mRv, position,R.id.slide_layout);
+        if(slideLayout instanceof SlideLayout){
+            ((SlideLayout) slideLayout).close(false);
+        }
         mData.remove(position);
         notifyItemRemoved(position);
         notifyItemRangeRemoved(position, getItemCount());

@@ -105,7 +105,7 @@ public class NoteActivity extends AppCompatActivity {
         noteRv.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false));
         noteRv.addItemDecoration(new DividerItemDecoration(this, LinearLayoutManager.VERTICAL));
         //note 适配器
-        mAdapter = new NoteAdapter(R.layout.item_note, mDataList);
+        mAdapter = new NoteAdapter(noteRv,R.layout.item_note, mDataList);
         noteRv.setAdapter(mAdapter);
         mAdapter.setOnItemChildClickListener(new BaseQuickAdapter.OnItemChildClickListener() {
             @Override

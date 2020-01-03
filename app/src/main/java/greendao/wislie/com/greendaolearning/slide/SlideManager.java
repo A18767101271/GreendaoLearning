@@ -23,29 +23,20 @@ public class SlideManager {
     }
 
     /**
-     * 判断当前slideLayout是否关闭
      *
      * @param slideLayout
-     * @return true表示侧滑打开, false表示侧滑未打开
-     */
-    public boolean isClosed(SlideLayout slideLayout) {
-        if (mSlideList.size() == 0) return true;
-        if (!contains(slideLayout)) return true;
-        return false;
-    }
-
-    /**
-     * 判断是否都关闭
-     *
      * @return
      */
-    public boolean isClosedAll() {
-        if (mSlideList.size() == 0) return true;
-        boolean isClosed = true;
-        for (int i = 0; i < mSlideList.size(); i++) {
-            if (!isClosed(mSlideList.get(i))) {
-                isClosed = false;
-                break;
+    public boolean isCloseAllExceptThis(SlideLayout slideLayout){
+        boolean isClosed = false;
+        Iterator<SlideLayout> iterator = mSlideList.iterator();
+        while (iterator.hasNext()) {
+            SlideLayout sl = iterator.next();
+            if (sl != slideLayout) {
+                Log.i("SlideLayout", "isCloseAllExceptThis: 关闭..");
+                isClosed = true;
+                sl.close(false);
+                mSlideList.remove(sl);
             }
         }
         return isClosed;
@@ -91,91 +82,22 @@ public class SlideManager {
         return contains;
     }
 
-    /**
-     * 正常关闭所有的,除了当前的
-     */
-    public void closeAllExceptThis(SlideLayout slideLayout) {
+    public void close(SlideLayout slideLayout){
         Iterator<SlideLayout> iterator = mSlideList.iterator();
         while (iterator.hasNext()) {
             SlideLayout sl = iterator.next();
-            if (sl != slideLayout) {
+            if (sl == slideLayout) {
                 sl.close(false);
             }
         }
-    }
-
-    /**
-     * 移除slideLayout
-     *
-     * @param slideLayout
-     */
-    public void removeAllExceptThis(SlideLayout slideLayout) {
-        Iterator<SlideLayout> iterator = mSlideList.iterator();
-        while (iterator.hasNext()) {
-            SlideLayout sl = iterator.next();
-            if (sl != slideLayout) {
-                mSlideList.remove(sl);
-            }
-        }
-    }
-
-    /**
-     * 快速关闭所有的
-     */
-    public void quickCloseAll() {
-        for (int i = mSlideList.size() - 1; i >= 0; i--) {
-            SlideLayout sl = mSlideList.get(i);
-            sl.close(true);
-        }
-    }
-
-    /**
-     * 删除所有的
-     */
-    public void removeAll() {
-        if (mSlideList.size() > 0) mSlideList.clear();
     }
 
     public int size() {
         return mSlideList.size();
     }
 
-
     public void put(SlideLayout slideLayout, boolean isSliding) {
         mSlidingMap.put(slideLayout, isSliding);
-    }
-
-    /**
-     * 是否在滑动
-     *
-     * @return
-     */
-    public boolean isSliding() {
-        boolean isSliding = false;
-        for (Map.Entry<SlideLayout, Boolean> entry : mSlidingMap.entrySet()) {
-            isSliding = entry.getValue();
-            Log.i("SlideLayout", "manager isSliding:" + isSliding);
-            if (isSliding) {
-                break;
-            }
-        }
-        return isSliding;
-    }
-
-    /**
-     *
-     * @param slideLayout
-     * @return
-     */
-    public boolean isCurrentSlideLayout(SlideLayout slideLayout){
-        Iterator<SlideLayout> iterator = mSlideList.iterator();
-        while (iterator.hasNext()) {
-            SlideLayout sl = iterator.next();
-            if (sl == slideLayout) {
-                return true;
-            }
-        }
-        return false;
     }
 
 }
