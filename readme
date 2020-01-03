@@ -1,1 +1,6 @@
-greendao 首次提交，还没完善
+
+
+//2020-01-03 21：10
+SlideLayout 解决了RecyclerView 在滑动中打开另一个时，前一个打开的未关闭
+解决方式:
+如果不是目前的在滑动的View,需要在dispatchTouchEvent方法中,在ACTION_DOWN的时候关闭其他打开的View
