@@ -1,8 +1,8 @@
 package greendao.wislie.com.greendaolearning.slide;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
+import android.util.Log;
+
+import java.util.*;
 
 /**
  * author : wislie
@@ -15,8 +15,8 @@ public class SlideManager {
 
     public static final SlideManager INSTANCE = new SlideManager();
     private List<SlideLayout> mSlideList;
-    //true表示在滑动,false表示没有在滑动
-//    public static boolean IS_SLIDING = false;
+    //是否在滑动
+    private Map<SlideLayout, Boolean> mSlidingMap = new HashMap<>();
 
     public SlideManager() {
         mSlideList = new ArrayList<>();
@@ -136,7 +136,46 @@ public class SlideManager {
         if (mSlideList.size() > 0) mSlideList.clear();
     }
 
-    public int size(){
+    public int size() {
         return mSlideList.size();
     }
+
+
+    public void put(SlideLayout slideLayout, boolean isSliding) {
+        mSlidingMap.put(slideLayout, isSliding);
+    }
+
+    /**
+     * 是否在滑动
+     *
+     * @return
+     */
+    public boolean isSliding() {
+        boolean isSliding = false;
+        for (Map.Entry<SlideLayout, Boolean> entry : mSlidingMap.entrySet()) {
+            isSliding = entry.getValue();
+            Log.i("SlideLayout", "manager isSliding:" + isSliding);
+            if (isSliding) {
+                break;
+            }
+        }
+        return isSliding;
+    }
+
+    /**
+     *
+     * @param slideLayout
+     * @return
+     */
+    public boolean isCurrentSlideLayout(SlideLayout slideLayout){
+        Iterator<SlideLayout> iterator = mSlideList.iterator();
+        while (iterator.hasNext()) {
+            SlideLayout sl = iterator.next();
+            if (sl == slideLayout) {
+                return true;
+            }
+        }
+        return false;
+    }
+
 }
